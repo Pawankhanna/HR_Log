@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Employee Joining Form</title>
+<style>
+  :root{
+    --bg:#f3f5f9; --card:#ffffff; --ink:#1c2333; --muted:#667085; --line:#d9dee8;
+    --brand:#1f5eff; --brand-soft:#e8efff; --ok:#12805c; --err:#d1343b; --err-soft:#fdecec;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:24px 16px 60px}
+  header{text-align:center;margin-bottom:18px}
+  header h1{margin:0;font-size:24px}
+  header p{margin:4px 0 0;color:var(--muted)}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:0 2px 14px rgba(20,30,60,.07);padding:24px}
+  /* progress */
+  .progress{display:flex;gap:6px;margin-bottom:8px}
+  .progress span{flex:1;height:6px;border-radius:6px;background:var(--line);transition:.3s}
+  .progress span.done{background:var(--brand)}
+  .step-title{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 18px}
+  .step-title h2{margin:0;font-size:19px}
+  .step-title small{color:var(--muted)}
+  .step{display:none}
+  .step.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+  .full{grid-column:1/-1}
+  .field label,.field .lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:5px}
+  .req::after{content:" *";color:var(--err)}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+  input[readonly]{background:#f6f7fa}
+  textarea{min-height:70px;resize:vertical}
+  .radios{display:flex;flex-wrap:wrap;gap:8px}
+  .radios label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:500;cursor:pointer;margin:0}
+  .radios input{width:auto}
+  .radios label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
+  .check{display:flex;gap:10px;align-items:flex-start;font-weight:500}
+  .check input{width:auto;margin-top:4px}
+  .hint{color:var(--muted);font-size:12.5px;margin-top:4px;display:block}
+  .hint.ok{color:var(--ok)}
+  .err{color:var(--err);font-size:12.5px;margin-top:4px;display:none}
+  .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--err);background:var(--err-soft)}
+  .field.invalid .err{display:block}
+  .cond{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;padding:14px;border-left:3px solid var(--brand);background:#fafbff;border-radius:8px}
+  .cond[hidden]{display:none}
+  .section-label{grid-column:1/-1;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px}
+  button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:11px 22px;cursor:pointer}
+  .btn-sec{background:#eef1f6;color:var(--ink)}
+  .btn-pri{background:var(--brand);color:#fff;margin-left:auto}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .review{width:100%;border-collapse:collapse;font-size:14px}
+  .review td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .review td:first-child{color:var(--muted);width:42%}
+  .review tr.grp td{background:var(--brand-soft);font-weight:700;color:var(--ink)}
+  .edit-link{color:var(--brand);cursor:pointer;font-weight:600;font-size:12.5px;float:right}
+  .banner{padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:14px}
+  .banner.info{background:var(--brand-soft)}
+  .banner.error{background:var(--err-soft);color:var(--err)}
+  .success{text-align:center;padding:30px 10px}
+  .success .tick{width:64px;height:64px;border-radius:50%;background:#e3f6ee;color:var(--ok);display:grid;place-items:center;font-size:34px;margin:0 auto 12px}
+  .empid{display:inline-block;font-size:22px;font-weight:800;letter-spacing:.05em;background:var(--brand-soft);padding:8px 18px;border-radius:8px;margin:8px 0}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (max-width:640px){.grid,.cond{grid-template-columns:1fr}.card{padding:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="companyTitle">New Employee Joining Form</h1>
+    <p>Human Resources Department · Takes about 8–10 minutes</p>
+  </header>
+
+  <div class="card" id="formCard">
+    <div class="progress" id="progress"></div>
+    <div class="step-title"><h2 id="stepName"></h2><small id="stepCount"></small></div>
+    <div id="draftBanner" class="banner info" hidden>We restored your saved progress. <a href="#" id="clearDraft">Start fresh</a></div>
+    <div id="errorBanner" class="banner error" hidden></div>
+
+    <form id="empForm" novalidate>
+
+      <!-- STEP 1: PERSONAL -->
+      <section class="step" data-title="Personal Details">
+        <div class="grid">
+          <div class="field"><label class="req" for="fullName">Full Name (as per Aadhaar)</label>
+            <input id="fullName" name="fullName" required data-rule="name" autocomplete="name"><small class="err"></small></div>
+          <div class="field"><label class="req" for="fatherName">Father's Name</label>
+            <input id="fatherName" name="fatherName" required data-rule="name"><small class="err"></small></div>
+          <div class="field"><label class="req" for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required data-rule="dob"><small class="hint" id="ageHint"></small><small class="err"></small></div>
+          <div class="field"><span class="lbl req">Gender</span>
+            <div class="radios">
+              <label><input type="radio" name="gender" value="Male" required> Male</label>
+              <label><input type="radio" name="gender" value="Female"> Female</label>
+              <label><input type="radio" name="gender" value="Other"> Other</label>
+            </div><small class="err"></small></div>
+          <div class="field"><label for="bloodGroup">Blood Group</label>
+            <select id="bloodGroup" name="bloodGroup">
+              <option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option><option>Don't know</option>
+            </select><small class="err"></small></div>
+          <div class="field"><label class="req" for="maritalStatus">Marital Status</label>
+            <select id="maritalStatus" name="maritalStatus" required>
+              <option value="">Select</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option>
+            </select><small class="err"></small></div>
+
+          <div class="cond" data-show-name="maritalStatus" data-show-values="Married">
+            <div class="field"><label class="req" for="spouseName">Spouse Name</label>
+              <input id="spouseName" name="spouseName" required data-rule="name"><small class="err"></small></div>
+          </div>
+
+          <div class="field"><label class="req" for="mobile">Mobile Number</label>
+            <input id="mobile" name="mobile" required data-rule="mobile" data-digits maxlength="10" inputmode="numeric" placeholder="10-digit mobile"><small class="err"></small></div>
+          <div class="field"><label for="altMobile">Alternate Mobile</label>
+            <input id="altMobile" name="altMobile" data-rule="mobile" data-digits maxlength="10" inputmode="numeric"><small class="err"></small></div>
+          <div class="field full"><label class="req" for="email">Personal Email</label>
+            <input type="email" id="email" name="email" required data-rule="email" autocomplete="email"><small class="hint">Your joining confirmation will be sent here.</small><small class="err"></small></div>
+          <div class="field full"><label class="req" for="photo">Passport-size Photo (JPG/PNG, max 2 MB)</label>
+            <input type="file" id="photo" name="photo" required accept="image/jpeg,image/png" data-maxmb="2"><small class="err"></small></div>
+        </div>
+      </section>
+
+      <!-- STEP 2: ADDRESS -->
+      <section class="step" data-title="Address">
+        <div class="grid">
+          <div class="section-label">Current Address</div>
+          <div class="field full"><label class="req" for="curAddress">House No., Street, Area</label>
+            <textarea id="curAddress" name="curAddress" required></textarea><small class="err"></small></div>
+          <div class="field"><label class="req" for="curPincode">Pincode</label>
+            <input id="curPincode" name="curPincode" required data-rule="pincode" data-digits maxlength="6" inputmode="numeric" data-pin-target="cur"><small class="hint" id="curPinHint">City and state fill in automatically.</small><small class="err"></small></div>
+          <div class="field"><label class="req" for="curCity">City / District</label>
+            <input id="curCity" name="curCity" required><small class="err"></small></div>
+          <div class="field"><label class="req" for="curState">State</label>
+            <input id="curState" name="curState" required list="states"><small class="err"></small></div>
+
+          <div class="field full"><label class="check"><input type="checkbox" id="sameAddress" name="sameAddress"> Permanent address is the same as current address</label></div>
+
+          <div class="cond" data-show-name="sameAddress" data-show-values="No">
+            <div class="section-label">Permanent Address</div>
+            <div class="field full"><label class="req" for="permAddress">House No., Street, Area</label>
+              <textarea id="permAddress" name="permAddress" required></textarea><small class="err"></small></div>
+            <div class="field"><label class="req" for="permPincode">Pincode</label>
+              <input id="permPincode" name="permPincode" required data-rule="pincode" data-digits maxlength="6" inputmode="numeric" data-pin-target="perm"><small class="hint" id="permPinHint"></small><small class="err"></small></div>
+            <div class="field"><label class="req" for="permCity">City / District</label>
+              <input id="permCity" name="permCity" required><small class="err"></small></div>
+            <div class="field"><label class="req" for="permState">State</label>
+              <input id="permState" name="permState" required list="states"><small class="err"></small></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3: JOB -->
+      <section class="step" data-title="Job Details">
+        <div class="grid">
+          <div class="field full"><span class="lbl req">Employment Type</span>
+            <div class="radios">
+              <label><input type="radio" name="employmentType" value="Full-time" required> Full-time</label>
+              <label><input type="radio" name="employmentType" value="Part-time"> Part-time</label>
+              <label><input type="radio" name="employmentType" value="Contract"> Contract</label>
+              <label><input type="radio" name="employmentType" value="Intern"> Intern / Trainee</label>
+            </div><small class="err"></small></div>
+
+          <div class="cond" data-show-name="employmentType" data-show-values="Intern">
+            <div class="field"><label class="req" for="collegeName">College / Institute</label>
+              <input id="collegeName" name="collegeName" required><small class="err"></small></div>
+            <div class="field"><label class="req" for="internEndDate">Internship End Date</label>
+              <input type="date" id="internEndDate" name="internEndDate" required data-rule="afterDoj"><small class="err"></small></div>
+            <div class="field"><label for="stipend">Monthly Stipend (₹)</label>
+              <input id="stipend" name="stipend" data-digits inputmode="numeric"><small class="err"></small></div>
+          </div>
+          <div class="cond" data-show-name="employmentType" data-show-values="Contract">
+            <div class="field"><label class="req" for="contractEndDate">Contract End Date</label>
+              <input type="date" id="contractEndDate" name="contractEndDate" required data-rule="afterDoj"><small class="err"></small></div>
+          </div>
+
+          <div class="field"><label class="req" for="department">Department</label>
+            <select id="department" name="department" required><option value="">Select</option></select><small class="err"></small></div>
+          <div class="field"><label class="req" for="designation">Designation</label>
+            <input id="designation" name="designation" required list="designations" placeholder="Pick or type"><small class="err"></small></div>
+          <div class="field"><label class="req" for="doj">Date of Joining</label>
+            <input type="date" id="doj" name="doj" required data-rule="doj"><small class="err"></small></div>
+          <div class="field"><label class="req" for="workLocation">Work Location</label>
+            <select id="workLocation" name="workLocation" required>
+              <option value="">Select</option><option>Head Office</option><option>Factory / Plant</option><option>Branch Office</option><option>Field / Remote</option>
+            </select><small class="err"></small></div>
+          <div class="field full"><label for="reportingManager">Reporting Manager</label>
+            <input id="reportingManager" name="reportingManager"><small class="err"></small></div>
+        </div>
+      </section>
+
+      <!-- STEP 4: EDUCATION & EXPERIENCE -->
+      <section class="step" data-title="Education &amp; Experience">
+        <div class="grid">
+          <div class="field full"><label class="req" for="qualification">Highest Qualification</label>
+            <select id="qualification" name="qualification" required>
+              <option value="">Select</option><option>Below 10th</option><option>10th</option><option>12th</option><option>ITI / Diploma</option>
+              <option>Graduate</option><option>Post Graduate</option><option>Professional (CA/CS/ICWA)</option><option>Doctorate</option>
+            </select><small class="err"></small></div>
+
+          <div class="field full"><span class="lbl req">Work Experience</span>
+            <div class="radios">
+              <label><input type="radio" name="experienceType" value="Fresher" required> Fresher</label>
+              <label><input type="radio" name="experienceType" value="Experienced"> Experienced</label>
+            </div><small class="err"></small></div>
+
+          <div class="cond" data-show-name="experienceType" data-show-values="Experienced">
+            <div class="field"><label class="req" for="prevCompany">Previous Company</label>
+              <input id="prevCompany" name="prevCompany" required><small class="err"></small></div>
+            <div class="field"><label class="req" for="prevDesignation">Last Designation</label>
+              <input id="prevDesignation" name="prevDesignation" required><small class="err"></small></div>
+            <div class="field"><label class="req" for="expYears">Total Experience (years)</label>
+              <input type="number" id="expYears" name="expYears" required min="0" max="45" step="0.5" data-rule="expYears"><small class="err"></small></div>
+            <div class="field"><label for="lastCtc">Last CTC (₹ per year)</label>
+              <input id="lastCtc" name="lastCtc" data-digits inputmode="numeric"><small class="err"></small></div>
+            <div class="field full"><span class="lbl req">Do you have a UAN (PF number) from a previous job?</span>
+              <div class="radios">
+                <label><input type="radio" name="hasUan" value="Yes" required> Yes</label>
+                <label><input type="radio" name="hasUan" value="No"> No</label>
+              </div><small class="err"></small></div>
+            <div class="cond" data-show-name="hasUan" data-show-values="Yes">
+              <div class="field"><label class="req" for="uan">UAN Number</label>
+                <input id="uan" name="uan" required data-rule="uan" data-digits maxlength="12" inputmode="numeric"><small class="err"></small></div>
+            </div>
+          </div>
+
+          <div class="field full"><label for="resume">Resume / CV (PDF, max 2 MB)</label>
+            <input type="file" id="resume" name="resume" accept="application/pdf" data-maxmb="2"><small class="err"></small></div>
+        </div>
+      </section>
+
+      <!-- STEP 5: ID & BANK -->
+      <section class="step" data-title="ID &amp; Bank Details">
+        <div class="grid">
+          <div class="field"><label class="req" for="pan">PAN Number</label>
+            <input id="pan" name="pan" required data-rule="pan" data-upper maxlength="10" placeholder="ABCDE1234F"><small class="err"></small></div>
+          <div class="field"><label class="req" for="aadhaar">Aadhaar Number</label>
+            <input id="aadhaar" name="aadhaar" required data-rule="aadhaar" data-digits maxlength="12" inputmode="numeric" placeholder="12 digits"><small class="err"></small></div>
+          <div class="field full"><label class="req" for="idProof">Aadhaar / PAN Copy (PDF/JPG/PNG, max 2 MB)</label>
+            <input type="file" id="idProof" name="idProof" required accept="application/pdf,image/jpeg,image/png" data-maxmb="2"><small class="err"></small></div>
+
+          <div class="section-label">Salary Account</div>
+          <div class="field"><label class="req" for="ifsc">IFSC Code</label>
+            <input id="ifsc" name="ifsc" required data-rule="ifsc" data-upper maxlength="11" placeholder="SBIN0001234"><small class="hint" id="ifscHint">Bank and branch fill in automatically.</small><small class="err"></small></div>
+          <div class="field"><label class="req" for="bankName">Bank Name</label>
+            <input id="bankName" name="bankName" required><small class="err"></small></div>
+          <div class="field"><label for="bankBranch">Branch</label>
+            <input id="bankBranch" name="bankBranch"><small class="err"></small></div>
+          <div class="field"><label class="req" for="accountHolder">Account Holder Name</label>
+            <input id="accountHolder" name="accountHolder" required data-rule="name"><small class="err"></small></div>
+          <div class="field"><label class="req" for="accountNo">Account Number</label>
+            <input id="accountNo" name="accountNo" required data-rule="account" data-digits maxlength="18" inputmode="numeric" autocomplete="off"><small class="err"></small></div>
+          <div class="field"><label class="req" for="confirmAccount">Confirm Account Number</label>
+            <input id="confirmAccount" name="confirmAccount" required data-rule="confirmAccount" data-digits maxlength="18" inputmode="numeric" autocomplete="off"><small class="err"></small></div>
+        </div>
+      </section>
+
+      <!-- STEP 6: EMERGENCY & DECLARATION -->
+      <section class="step" data-title="Emergency Contact &amp; Declaration">
+        <div class="grid">
+          <div class="field"><label class="req" for="emergencyName">Contact Person Name</label>
+            <input id="emergencyName" name="emergencyName" required data-rule="name"><small class="err"></small></div>
+          <div class="field"><label class="req" for="emergencyRelation">Relation</label>
+            <select id="emergencyRelation" name="emergencyRelation" required>
+              <option value="">Select</option><option>Father</option><option>Mother</option><option>Spouse</option><option>Brother</option>
+              <option>Sister</option><option>Son</option><option>Daughter</option><option>Friend</option><option>Other</option>
+            </select><small class="err"></small></div>
+          <div class="field"><label class="req" for="emergencyPhone">Contact Number</label>
+            <input id="emergencyPhone" name="emergencyPhone" required data-rule="emergencyPhone" data-digits maxlength="10" inputmode="numeric"><small class="err"></small></div>
+
+          <div class="field full"><span class="lbl req">Any disability or medical condition HR should know about?</span>
+            <div class="radios">
+              <label><input type="radio" name="hasDisability" value="No" required> No</label>
+              <label><input type="radio" name="hasDisability" value="Yes"> Yes</label>
+            </div><small class="err"></small></div>
+          <div class="cond" data-show-name="hasDisability" data-show-values="Yes">
+            <div class="field full"><label class="req" for="disabilityDetails">Please share details (kept confidential)</label>
+              <textarea id="disabilityDetails" name="disabilityDetails" required></textarea><small class="err"></small></div>
+          </div>
+
+          <div class="field full"><label class="check"><input type="checkbox" id="declaration" name="declaration" required>
+            I declare that the information given above is true and correct. I understand that any false information may lead to cancellation of my appointment.</label><small class="err"></small></div>
+        </div>
+      </section>
+
+      <!-- STEP 7: REVIEW -->
+      <section class="step" data-title="Review &amp; Submit">
+        <p class="hint" style="margin-top:0">Please check everything once. Click <b>Edit</b> on any section to fix it.</p>
+        <table class="review" id="reviewTable"></table>
+      </section>
+
+      <div class="nav">
+        <button type="button" class="btn-sec" id="prevBtn">← Back</button>
+        <button type="button" class="btn-pri" id="nextBtn">Next →</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card success" id="successCard" hidden>
+    <div class="tick">✓</div>
+    <h2 style="margin:0">Welcome aboard!</h2>
+    <p>Your joining form has been submitted. Your Employee ID is</p>
+    <div class="empid" id="empIdOut"></div>
+    <p class="hint">A confirmation has been sent to your email. HR will verify your documents and contact you.</p>
+  </div>
+</div>
+
+<datalist id="designations"></datalist>
+<datalist id="states"></datalist>
+
+<script>
+/* ================== CONFIG ================== */
+const SCRIPT_URL   = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const COMPANY_NAME = 'Your Company Name';
+const DRAFT_KEY    = 'newEmpFormDraft_v1';
+// Never saved in the browser draft (shared/office computers)
+const SENSITIVE    = ['pan','aadhaar','accountNo','confirmAccount','uan'];
+
+const DEPARTMENTS = {
+  'Human Resources':['HR Executive','HR Manager','Recruiter','HR Assistant'],
+  'Accounts & Finance':['Accountant','Accounts Executive','Billing Executive','Finance Manager'],
+  'Sales':['Sales Executive','Sales Officer','Area Sales Manager','Sales Manager'],
+  'Marketing':['Marketing Executive','Digital Marketing Executive','Marketing Manager'],
+  'Production':['Helper','Machine Operator','Production Supervisor','Production Manager'],
+  'Quality':['QC Executive','Lab Chemist','QA Manager'],
+  'Purchase':['Purchase Executive','Purchase Manager'],
+  'Logistics & Dispatch':['Dispatch Executive','Store Keeper','Driver','Logistics Manager'],
+  'Admin':['Office Assistant','Receptionist','Admin Executive','Admin Manager'],
+  'IT':['IT Executive','System Administrator','Developer'],
+  'Operations':['Operations Executive','Operations Manager'],
+  'Other':[]
+};
+const STATES = ['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Andaman and Nicobar Islands','Chandigarh','Dadra and Nagar Haveli and Daman and Diu','Delhi','Jammu and Kashmir','Ladakh','Lakshadweep','Puducherry'];
+
+/* ================== VALIDATION RULES ================== */
+const RX = {
+  name:/^[A-Za-z][A-Za-z .']{1,59}$/,
+  mobile:/^[6-9]\d{9}$/,
+  email:/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
+  pincode:/^[1-9]\d{5}$/,
+  pan:/^[A-Z]{5}[0-9]{4}[A-Z]$/,
+  ifsc:/^[A-Z]{4}0[A-Z0-9]{6}$/,
+  account:/^\d{9,18}$/,
+  uan:/^\d{12}$/
+};
+// Verhoeff checksum – catches mistyped Aadhaar numbers
+const VD=[[0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]];
+const VP=[[0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],[8,9,1,6,0,4,3,5,2,7],[9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],[2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]];
+function verhoeff(n){let c=0;n.split('').reverse().map(Number).forEach((d,i)=>{c=VD[c][VP[i%8][d]]});return c===0;}
+
+const $ = id => document.getElementById(id);
+const form = $('empForm');
+const steps = [...document.querySelectorAll('.step')];
+let current = 0;
+
+function val(name){
+  const els = form.querySelectorAll(`[name="${name}"]`);
+  if(!els.length) return '';
+  const el = els[0];
+  if(el.type==='radio'){ const c=[...els].find(e=>e.checked); return c?c.value:''; }
+  if(el.type==='checkbox') return el.checked?'Yes':'No';
+  return el.value.trim();
+}
+function ageOn(dateStr, ref=new Date()){
+  const d=new Date(dateStr); let a=ref.getFullYear()-d.getFullYear();
+  const m=ref.getMonth()-d.getMonth(); if(m<0||(m===0&&ref.getDate()<d.getDate())) a--; return a;
+}
+const daysFromToday = s => Math.round((new Date(s) - new Date(new Date().toDateString()))/86400000);
+
+/* Custom rule checks – return an error message or '' */
+function ruleError(rule, v, el){
+  switch(rule){
+    case 'name':    return RX.name.test(v)?'':'Use letters only (no numbers or symbols).';
+    case 'mobile':  return RX.mobile.test(v)?'':'Enter a valid 10-digit Indian mobile number.';
+    case 'email':   return RX.email.test(v)?'':'Enter a valid email address.';
+    case 'pincode': return RX.pincode.test(v)?'':'Pincode must be 6 digits.';
+    case 'pan':     return RX.pan.test(v)?'':'PAN format: 5 letters, 4 digits, 1 letter (e.g. ABCDE1234F).';
+    case 'ifsc':    return RX.ifsc.test(v)?'':'IFSC format: 4 letters, 0, then 6 characters.';
+    case 'account': return RX.account.test(v)?'':'Account number must be 9–18 digits.';
+    case 'uan':     return RX.uan.test(v)?'':'UAN must be 12 digits.';
+    case 'aadhaar': return (/^[2-9]\d{11}$/.test(v) && verhoeff(v))?'':'This Aadhaar number is not valid. Please re-check.';
+    case 'confirmAccount': return v===val('accountNo')?'':'Account numbers do not match.';
+    case 'emergencyPhone':
+      if(!RX.mobile.test(v)) return 'Enter a valid 10-digit mobile number.';
+      return v===val('mobile')?'Emergency contact must be different from your own number.':'';
+    case 'dob': { const a=ageOn(v); if(a<18) return 'Employee must be at least 18 years old.'; if(a>65) return 'Please check the year of birth.'; return ''; }
+    case 'doj': { const d=daysFromToday(v); if(d< -60) return 'Joining date cannot be more than 60 days in the past.'; if(d>180) return 'Joining date cannot be more than 6 months ahead.'; return ''; }
+    case 'afterDoj': return (val('doj') && new Date(v)<=new Date(val('doj')))?'End date must be after the joining date.':'';
+    case 'expYears': {
+      const yrs=parseFloat(v); if(isNaN(yrs)||yrs<0) return 'Enter a valid number.';
+      const dob=val('dob'); if(dob && yrs>ageOn(dob)-14) return 'Experience looks too high for your age.'; return '';
+    }
+  }
+  return '';
+}
+
+function validateField(el){
+  const field = el.closest('.field'); if(!field) return true;
+  let msg='';
+  if(el.type==='radio'){
+    if(el.required && !val(el.name)) msg='Please choose one option.';
+  } else if(el.type==='checkbox'){
+    if(el.required && !el.checked) msg='Please tick this box to continue.';
+  } else if(el.type==='file'){
+    const f=el.files[0];
+    if(el.required && !f) msg='Please upload this file.';
+    else if(f){
+      const max=(+el.dataset.maxmb||2)*1024*1024;
+      const okTypes=el.accept.split(',');
+      if(f.size>max) msg=`File is too large (max ${el.dataset.maxmb} MB).`;
+      else if(!okTypes.includes(f.type)) msg='This file type is not allowed.';
+    }
+  } else {
+    const v=el.value.trim();
+    if(el.required && !v) msg='This field is required.';
+    else if(v && el.dataset.rule) msg=ruleError(el.dataset.rule, v, el);
+  }
+  field.classList.toggle('invalid', !!msg);
+  const err=field.querySelector('.err'); if(err) err.textContent=msg;
+  return !msg;
+}
+
+function validateStep(i){
+  let ok=true, first=null; const seen=new Set();
+  steps[i].querySelectorAll('input,select,textarea').forEach(el=>{
+    if(el.disabled) return;
+    if(el.type==='radio'){ if(seen.has(el.name)) return; seen.add(el.name); }
+    if(!validateField(el)){ ok=false; first=first||el; }
+  });
+  if(first){ first.focus({preventScroll:true}); first.closest('.field').scrollIntoView({behavior:'smooth',block:'center'}); }
+  return ok;
+}
+
+/* ================== CONDITIONAL LOGIC ================== */
+function applyLogic(){
+  // Nested conditions resolve correctly by running twice
+  for(let pass=0; pass<2; pass++){
+    document.querySelectorAll('[data-show-name]').forEach(box=>{
+      const parentHidden = box.parentElement.closest('[data-show-name]')?.hidden;
+      const show = !parentHidden && box.dataset.showValues.split('|').includes(val(box.dataset.showName));
+      box.hidden = !show;
+      box.querySelectorAll(':scope input, :scope select, :scope textarea').forEach(i=>{ i.disabled=!show; });
+    });
+  }
+  // Same-address: show block when unchecked
+  // (handled by data-show-values="No")
+}
+
+function fillDesignations(){
+  const list = DEPARTMENTS[val('department')] || [];
+  $('designations').innerHTML = list.map(d=>`<option value="${d}">`).join('');
+}
+
+/* Auto-fill: pincode → city/state */
+async function pinLookup(prefix){
+  const pin=val(prefix+'Pincode'), hint=$(prefix+'PinHint');
+  if(!RX.pincode.test(pin)) return;
+  hint.textContent='Looking up pincode…'; hint.className='hint';
+  try{
+    const r=await fetch('https://api.postalpincode.in/pincode/'+pin);
+    const j=await r.json(); const po=j?.[0]?.PostOffice?.[0];
+    if(po){
+      $(prefix+'City').value=po.District; $(prefix+'State').value=po.State;
+      hint.textContent=`✓ ${po.District}, ${po.State}`; hint.className='hint ok';
+      validateField($(prefix+'City')); validateField($(prefix+'State')); saveDraft();
+    } else { hint.textContent='Pincode not found — please type city and state.'; }
+  }catch(e){ hint.textContent='Please type city and state.'; }
+}
+
+/* Auto-fill: IFSC → bank/branch */
+async function ifscLookup(){
+  const code=val('ifsc'), hint=$('ifscHint');
+  if(!RX.ifsc.test(code)) return;
+  hint.textContent='Checking IFSC…'; hint.className='hint';
+  try{
+    const r=await fetch('https://ifsc.razorpay.com/'+code);
+    if(!r.ok) throw 0;
+    const j=await r.json();
+    $('bankName').value=j.BANK||$('bankName').value;
+    $('bankBranch').value=j.BRANCH||$('bankBranch').value;
+    hint.textContent=`✓ ${j.BANK}, ${j.BRANCH}`; hint.className='hint ok';
+    validateField($('bankName')); saveDraft();
+  }catch(e){ hint.textContent='IFSC not found — please check the code or type bank details.'; hint.className='hint'; }
+}
+
+/* ================== DRAFT (auto-save) ================== */
+function saveDraft(){
+  try{
+    const d={};
+    form.querySelectorAll('[name]').forEach(el=>{
+      if(el.type==='file'||SENSITIVE.includes(el.name)) return;
+      if(el.type==='radio'){ if(el.checked) d[el.name]=el.value; }
+      else if(el.type==='checkbox') d[el.name]=el.checked;
+      else d[el.name]=el.value;
+    });
+    d.__step=current;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  }catch(e){}
+}
+function loadDraft(){
+  let d=null; try{ d=JSON.parse(localStorage.getItem(DRAFT_KEY)); }catch(e){}
+  if(!d) return;
+  Object.entries(d).forEach(([k,v])=>{
+    form.querySelectorAll(`[name="${k}"]`).forEach(el=>{
+      if(el.type==='radio') el.checked=(el.value===v);
+      else if(el.type==='checkbox') el.checked=!!v;
+      else el.value=v;
+    });
+  });
+  $('draftBanner').hidden=false;
+}
+function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+
+/* ================== REVIEW ================== */
+function labelFor(el){
+  const f=el.closest('.field'); if(!f) return el.name;
+  return (f.querySelector('label:not(.check):not(.radios label)')||f.querySelector('.lbl')||{textContent:el.name}).textContent.trim();
+}
+function displayValue(el){
+  const n=el.name;
+  if(el.type==='file') return el.files[0]?('📎 '+el.files[0].name):'—';
+  let v=val(n); if(!v) return '—';
+  if(n==='aadhaar') return 'XXXX XXXX '+v.slice(-4);
+  if(n==='accountNo') return '•••• '+v.slice(-4);
+  if(el.type==='date') return new Date(v).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  return v;
+}
+function buildReview(){
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  let html='';
+  steps.slice(0,-1).forEach((s,i)=>{
+    html+=`<tr class="grp"><td colspan="2">${s.dataset.title}<span class="edit-link" data-goto="${i}">Edit</span></td></tr>`;
+    const seen=new Set();
+    s.querySelectorAll('[name]').forEach(el=>{
+      if(el.disabled||seen.has(el.name)||el.name==='confirmAccount'||el.name==='declaration'||el.name==='sameAddress') return;
+      seen.add(el.name);
+      html+=`<tr><td>${esc(labelFor(el))}</td><td>${esc(displayValue(el))}</td></tr>`;
+    });
+    if(s.querySelector('#sameAddress') && val('sameAddress')==='Yes')
+      html+=`<tr><td>Permanent Address</td><td>Same as current address</td></tr>`;
+  });
+  $('reviewTable').innerHTML=html;
+}
+
+/* ================== NAVIGATION ================== */
+function render(){
+  steps.forEach((s,i)=>s.classList.toggle('active',i===current));
+  $('stepName').textContent=steps[current].dataset.title.replace('&amp;','&');
+  $('stepCount').textContent=`Step ${current+1} of ${steps.length}`;
+  $('progress').innerHTML=steps.map((_,i)=>`<span class="${i<=current?'done':''}"></span>`).join('');
+  $('prevBtn').style.visibility=current===0?'hidden':'visible';
+  $('nextBtn').textContent=current===steps.length-1?'Submit Form':'Next →';
+  if(current===steps.length-1) buildReview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$('nextBtn').addEventListener('click',()=>{
+  $('errorBanner').hidden=true;
+  if(current===steps.length-1) return submitForm();
+  if(!validateStep(current)) return;
+  current++; saveDraft(); render();
+});
+$('prevBtn').addEventListener('click',()=>{ if(current>0){ current--; render(); }});
+$('reviewTable').addEventListener('click',e=>{
+  const g=e.target.dataset.goto; if(g!==undefined){ current=+g; render(); }
+});
+$('clearDraft').addEventListener('click',e=>{ e.preventDefault(); clearDraft(); location.reload(); });
+
+/* ================== LIVE INPUT HANDLING ================== */
+form.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.hasAttribute('data-digits')) el.value=el.value.replace(/\D/g,'');
+  if(el.hasAttribute('data-upper')) el.value=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(el.closest('.field')?.classList.contains('invalid')) validateField(el);
+  if(el.name==='dob' && el.value){ const a=ageOn(el.value); $('ageHint').textContent=a>0?`Age: ${a} years`:''; }
+  if(el.name==='fullName' && !$('accountHolder').value) {/* filled on step 5 */}
+  saveDraft();
+});
+form.addEventListener('change',e=>{
+  const el=e.target;
+  applyLogic();
+  if(el.name==='department'){ fillDesignations(); }
+  if(el.name==='curPincode') pinLookup('cur');
+  if(el.name==='permPincode') pinLookup('perm');
+  if(el.name==='ifsc') ifscLookup();
+  if(el.type==='file'||el.type==='radio'||el.type==='checkbox'||el.tagName==='SELECT') validateField(el);
+  else if(el.value) validateField(el);
+  saveDraft();
+});
+// Suggest account holder = employee name when they reach the bank step
+$('ifsc').addEventListener('focus',()=>{ if(!$('accountHolder').value) $('accountHolder').value=val('fullName'); });
+
+/* ================== SUBMIT ================== */
+const readFile = f => new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onload=()=>res({name:f.name,type:f.type,data:r.result.split(',')[1]});
+  r.onerror=rej; r.readAsDataURL(f);
+});
+
+async function submitForm(){
+  // Re-validate every step before sending
+  for(let i=0;i<steps.length-1;i++){
+    if(!validateStep(i)){ current=i; render(); validateStep(i);
+      $('errorBanner').textContent='Please fix the highlighted fields.'; $('errorBanner').hidden=false; return; }
+  }
+  if(SCRIPT_URL.startsWith('PASTE')){
+    $('errorBanner').textContent='Form is not connected yet: set SCRIPT_URL in index.html.'; $('errorBanner').hidden=false; return;
+  }
+  const btn=$('nextBtn'); btn.disabled=true; $('prevBtn').disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Submitting…';
+
+  try{
+    const fields={}; const seen=new Set();
+    form.querySelectorAll('[name]').forEach(el=>{
+      if(el.disabled||el.type==='file'||el.name==='confirmAccount'||seen.has(el.name)) return;
+      seen.add(el.name); fields[el.name]=val(el.name);
+    });
+    if(fields.sameAddress==='Yes'){
+      fields.permAddress=fields.curAddress; fields.permCity=fields.curCity;
+      fields.permState=fields.curState;     fields.permPincode=fields.curPincode;
+    }
+    const files={};
+    for(const id of ['photo','resume','idProof']){
+      const f=$(id).files[0]; if(f && !$(id).disabled) files[id]=await readFile(f);
+    }
+    // text/plain avoids a CORS preflight, which Apps Script does not support
+    const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({fields,files})});
+    const out=await res.json();
+    if(out.status!=='success') throw new Error(out.message||'Submission failed.');
+
+    clearDraft();
+    $('formCard').hidden=true; $('successCard').hidden=false;
+    $('empIdOut').textContent=out.employeeId;
+    window.scrollTo({top:0});
+  }catch(err){
+    $('errorBanner').textContent='❌ '+(err.message||'Network error. Please try again.');
+    $('errorBanner').hidden=false;
+    btn.disabled=false; $('prevBtn').disabled=false; btn.textContent='Submit Form';
+  }
+}
+
+/* ================== INIT ================== */
+(function init(){
+  document.title=`New Employee Joining Form – ${COMPANY_NAME}`;
+  $('companyTitle').textContent=`${COMPANY_NAME} – New Employee Joining Form`;
+  $('department').insertAdjacentHTML('beforeend',Object.keys(DEPARTMENTS).map(d=>`<option>${d}</option>`).join(''));
+  $('states').innerHTML=STATES.map(s=>`<option value="${s}">`).join('');
+  loadDraft();
+  fillDesignations();
+  applyLogic();
+  try{ const d=JSON.parse(localStorage.getItem(DRAFT_KEY)); if(d&&d.__step) current=Math.min(d.__step, steps.length-2); }catch(e){}
+  if($('dob').value) $('ageHint').textContent=`Age: ${ageOn($('dob').value)} years`;
+  render();
+})();
+</script>
+</body>
+</html>
